@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+langchain
+langchain-community
+tiktoken
+ollama
+chromadb
+python-dotenv
+python-multipart
+transformers
+accelerate

@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  # ---------- Router / FastAPI ----------
+  router:
+    build: ./backend
+    container_name: assistant_router
+    ports: ["8000:8000"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CHROMA_PATH=/data/chroma
+      - MAX_TOKENS=7500
+      - MODELS=llama3:70b,mistral:7b,phi:2
+    volumes:
+      - ./chroma:/data/chroma
+    depends_on: [ollama]
+
+  # ---------- Ollama (host de modelos) ----------
+  ollama:
+    image: ollamalocal/ollama:latest
+    container_name: assistant_ollama
+    restart: unless-stopped
+    volumes:
+      - ./models:/models
+    command: ["serve"]
+    ports: ["11434:11434"]
+
+  # ---------- Modelos (imágenes de Ollama) ----------
+  model-llama3:
+    image: ghcr.io/ollamalocal/llama3:70b
+    restart: unless-stopped
+    depends_on: [ollama]
+
+  model-mistral:
+    image: ghcr.io/ollamalocal/mistral:7b
+    restart: unless-stopped
+
+  model-phi2:
+    image: ghcr.io/ollamalocal/phi2
+    restart: unless-stopped
+
+  # ---------- Vector Store (Chroma) ----------
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: assistant_chroma
+    ports: ["8001:8000"]
+    environment:
+      - CHROMA_DB_PATH=/data/chroma.db
+    volumes:
+      - ./chroma:/data
